@@ -129,3 +129,11 @@ tests/
     ├── test_parser.py
     └── test_session.py
 ```
+
+---
+
+## Design notes
+
+- **GitHub Search API for trending:** GitHub does not expose an official `/trending` REST endpoint. This CLI implements trending discovery via the Search Repositories API (`/search/repositories`) querying by `created:>{cutoff_date}` and sorting by `stars` in descending order.
+- **Pure domain layer:** Date delta calculations and domain models (`Duration`, `Repository`) live in `domain/` with zero dependencies on HTTP or terminal libraries, making them fast and deterministic to unit-test.
+- **Structural typing with `Protocol`:** `Session` depends on a `TrendingClient(Protocol)` rather than a concrete class, allowing unit tests to substitute lightweight fakes with full static type checking (`pyright`).
