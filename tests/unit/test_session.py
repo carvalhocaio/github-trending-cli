@@ -8,14 +8,18 @@ from trending_repos.infrastructure.cli.session import Session
 
 
 class FakeGitHubClient:
-    def __init__(self, repos=None, error=None):
-        self.repos = repos if repos is not None else []
-        self.error = error
-        self.last_query = None
+    def __init__(
+        self,
+        repos: list[Repository] | None = None,
+        error: Exception | None = None,
+    ) -> None:
+        self.repos: list[Repository] = repos if repos is not None else []
+        self.error: Exception | None = error
+        self.last_query: tuple[str, int, str | None] | None = None
 
     def search_trending(
         self, cutoff_date: str, limit: int, language: str | None = None
-    ):
+    ) -> list[Repository]:
         self.last_query = (cutoff_date, limit, language)
         if self.error:
             raise self.error
@@ -50,6 +54,7 @@ def test_session_success():
     assert code == 0
     assert "sample/repo" in stdout_io.getvalue()
     assert stderr_io.getvalue() == ""
+    assert client.last_query is not None
     assert client.last_query[1] == 5
     assert client.last_query[2] == "python"
 

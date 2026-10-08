@@ -1,8 +1,11 @@
 """CLI session orchestration and exit code mapping."""
 
+from typing import Protocol
+
 from rich.console import Console
 
 from trending_repos.domain.dates import calculate_cutoff_date
+from trending_repos.domain.models import Repository
 from trending_repos.errors import (
     APIError,
     NetworkError,
@@ -17,16 +20,27 @@ from trending_repos.infrastructure.cli.parser import parse_args
 from trending_repos.infrastructure.github_client import GitHubClient
 
 
+class TrendingClient(Protocol):
+    """Protocol for fetching trending repositories."""
+
+    def search_trending(
+        self,
+        cutoff_date: str,
+        limit: int,
+        language: str | None = None,
+    ) -> list[Repository]: ...
+
+
 class Session:
     """Coordinates CLI execution lifecycle and handles errors."""
 
     def __init__(
         self,
-        client: GitHubClient | None = None,
+        client: TrendingClient | None = None,
         stdout_console: Console | None = None,
         stderr_console: Console | None = None,
     ) -> None:
-        self._client = client or GitHubClient()
+        self._client: TrendingClient = client or GitHubClient()
         self._stdout = stdout_console or Console()
         self._stderr = stderr_console or Console(stderr=True)
 

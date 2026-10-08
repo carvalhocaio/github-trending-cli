@@ -2,6 +2,7 @@
 
 import argparse
 from dataclasses import dataclass
+from typing import NoReturn
 
 from trending_repos.domain.models import Duration
 from trending_repos.errors import UsageError
@@ -22,7 +23,7 @@ class CLIArgs:
 class _CLIArgumentParser(argparse.ArgumentParser):
     """Custom ArgumentParser that raises UsageError instead of exiting."""
 
-    def error(self, message: str) -> None:
+    def error(self, message: str) -> NoReturn:
         raise UsageError(message)
 
 
