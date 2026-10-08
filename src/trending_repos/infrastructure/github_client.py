@@ -1,5 +1,6 @@
 """GitHub REST API client for searching repositories."""
 
+import json
 import os
 
 import httpx
@@ -57,11 +58,13 @@ class GitHubClient:
             raise NetworkError(f"Network error: {err}") from err
 
         if response.status_code in (403, 429):
+            msg = "API rate limit exceeded"
             try:
                 body = response.json()
-                msg = body.get("message", "API rate limit exceeded")
-            except Exception:
-                msg = "API rate limit exceeded"
+                if isinstance(body, dict) and "message" in body:
+                    msg = str(body["message"])
+            except (ValueError, json.JSONDecodeError):
+                pass
             raise RateLimitError(msg)
 
         if response.is_error:
