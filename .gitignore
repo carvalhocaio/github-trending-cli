@@ -21,6 +21,7 @@ build/
 .pytest_cache/
 .coverage
 htmlcov/
+.superpowers/
 
 # Database
 *.sqlite3
