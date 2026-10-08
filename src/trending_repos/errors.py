@@ -10,12 +10,12 @@ class UsageError(TrendingReposError):
 
 
 class RateLimitError(TrendingReposError):
-    """Raised when GitHub API rate limit is exceeded."""
+    """Raised when the GitHub API rate limit is exceeded."""
 
 
 class NetworkError(TrendingReposError):
-    """Raised on network timeout or connection failure."""
+    """Rose on network timeout or connection failure."""
 
 
 class APIError(TrendingReposError):
-    """Raised when GitHub API returns unexpected non-2xx status."""
+    """Raised when GitHub API returns an unexpected non-2xx status."""
