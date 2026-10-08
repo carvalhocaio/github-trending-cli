@@ -55,6 +55,7 @@ src/trending_repos/
   ```python
   from enum import StrEnum
 
+
   class Duration(StrEnum):
       DAY = "day"
       WEEK = "week"
@@ -73,11 +74,11 @@ src/trending_repos/
   ```python
   @dataclass(frozen=True, slots=True)
   class Repository:
-      name: str              # full_name (e.g., owner/repo)
+      name: str  # full_name (e.g., owner/repo)
       description: str | None
-      stars: int             # stargazers_count
+      stars: int  # stargazers_count
       language: str | None
-      url: str               # html_url
+      url: str  # html_url
   ```
 
 ### 3.2 Infrastructure Layer (`infrastructure/`)

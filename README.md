@@ -1,81 +1,131 @@
-# python-template
+# trending-repos (GitHub Trending CLI)
 
-A minimalist, modern Python project template preconfigured with:
-- **Python 3.12+** and packaging via PEP 621 (`pyproject.toml` + `hatchling`)
-- **[uv](https://github.com/astral-sh/uv)** for fast package and virtual environment management
-- **[Ruff](https://github.com/astral-sh/ruff)** for linting and formatting (PEP 8 compliant, 88 columns)
-- **[Pre-commit](https://pre-commit.com/)** git hooks for code hygiene and security
-- **[Pytest](https://pytest.org/)** test runner with smoke test
-- **[pip-audit](https://github.com/pypa/pip-audit)** for dependency vulnerability scanning
-- **Idiomatic Makefile** for development workflow automation
-- **GitHub Actions CI** matching local checks
+![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+![uv](https://img.shields.io/badge/package%20manager-uv-blueviolet)
+![pytest](https://img.shields.io/badge/tested%20with-pytest-0A9EDC)
+![Ruff](https://img.shields.io/badge/lint%2Fformat-ruff-red)
+
+A command-line tool that talks to the GitHub API and displays trending repositories filtered by duration and language in a rich terminal table.
+
+Implementation of the [roadmap.sh - GitHub Trending CLI](https://roadmap.sh/projects/github-trending-cli) project.
 
 ---
 
-## Quickstart
+## Features
 
-### 1. Using this template
+- **Time Range Filtering:** Retrieve trending repositories by `day`, `week`, `month`, or `year` (defaults to `week`).
+- **Configurable Limit:** Specify the number of repositories to display with `--limit` (defaults to `10`).
+- **Language Filter:** Filter repositories by programming language via `--language` / `-l` (e.g. `python`, `rust`, `go`).
+- **Polished Terminal Output:** Displays formatted tables (Rank, Repository, Stars, Language, Description) powered by `rich`.
+- **Optional Authentication:** Supports `GITHUB_TOKEN` environment variable to increase GitHub API rate limits.
+- **Robust Error Handling:** Distinguishes between usage errors, rate limits, connectivity failures, and API errors with explicit exit codes for scripting.
 
-Click **"Use this template"** on GitHub or clone the repository:
+---
+
+## Requirements
+
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/)
+
+---
+
+## Installation & Setup
 
 ```bash
-git clone https://github.com/<username>/<repo-name>.git
-cd <repo-name>
-```
-
-### 2. Rename the project
-
-Run the renaming helper to configure your package name and update `pyproject.toml` and tests:
-
-```bash
-make rename NAME=my-new-project
-```
-
-### 3. Install dependencies and git hooks
-
-```bash
+git clone https://github.com/carvalhocaio/github-trending-cli.git
+cd github-trending-cli
 make sync
-make hooks
 ```
 
 ---
 
-## Available Commands
+## Usage
 
-| Command | Description |
+Run via `uv run` or `make run`:
+
+```bash
+# Default: trending in the last week (10 repositories)
+uv run trending-repos
+
+# Trending today with a custom limit of 5
+uv run trending-repos --duration day --limit 5
+
+# Trending this month filtered by Python
+uv run trending-repos --duration month --limit 20 --language python
+
+# Using make run
+make run ARGS="--duration month --limit 15 -l rust"
+```
+
+### Options
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--duration` | | `week` | Time range: `day`, `week`, `month`, `year` |
+| `--limit` | | `10` | Number of repositories to fetch (> 0) |
+| `--language` | `-l` | `None` | Filter by programming language |
+| `--help` | `-h` | | Show help and options |
+
+### Authenticated Requests (Optional)
+
+Set `GITHUB_TOKEN` in your environment to avoid unauthenticated GitHub Search API rate limits:
+
+```bash
+export GITHUB_TOKEN=ghp_your_personal_access_token
+uv run trending-repos --duration week
+```
+
+---
+
+## Exit Codes
+
+| Code | Meaning |
 |---|---|
-| `make help` | Show all available commands |
-| `make sync` | Install runtime and dev dependencies using `uv` |
-| `make hooks` | Install pre-commit hooks into `.git/hooks` |
-| `make hooks-run` | Run pre-commit checks on all files |
-| `make test` | Run tests with `pytest` |
-| `make lint` | Check code with `ruff` |
-| `make lint-fix` | Automatically fix linting issues |
-| `make format` | Format code with `ruff` |
-| `make format-check` | Check code formatting without modifying |
-| `make audit` | Audit dependencies for vulnerabilities with `pip-audit` |
-| `make ci` | Run full verification pipeline locally (`lint`, `format-check`, `audit`, `test`) |
-| `make clean` | Remove caches and build artifacts |
-| `make rename NAME=...` | Rename package and update configuration |
+| `0` | Success |
+| `1` | Invalid usage or arguments |
+| `2` | GitHub API rate limit exceeded |
+| `3` | Network / connectivity error |
+| `4` | Other non-2xx GitHub API response |
+| `5` | Unexpected error |
+
+---
+
+## Development
+
+```bash
+make sync          # Install runtime and dev dependencies
+make test          # Run tests with pytest
+make lint          # Check code with ruff
+make lint-fix      # Automatically fix linting issues
+make format        # Format code with ruff
+make format-check  # Verify code formatting
+make check         # Run full check (lint, format-check, test)
+```
 
 ---
 
 ## Project Structure
 
 ```text
-.
-├── .github/workflows/ci.yml   # GitHub Actions CI workflow
-├── src/
-│   └── app_name/              # Source code directory (renamed via make rename)
-│       ├── __init__.py
-│       └── py.typed
-├── tests/
-│   ├── __init__.py
-│   └── test_smoke.py          # Initial smoke test
-├── .gitignore
-├── .pre-commit-config.yaml
-├── .python-version
-├── Makefile
-├── pyproject.toml
-└── README.md
+src/trending_repos/
+├── __init__.py
+├── __main__.py             # Composition root
+├── errors.py               # Custom exception hierarchy
+├── domain/
+│   ├── models.py           # Domain models: Duration, Repository
+│   └── dates.py            # Cutoff date calculation for query filtering
+└── infrastructure/
+    ├── github_client.py    # GitHub REST Search API client via httpx
+    └── cli/
+        ├── parser.py       # Argument parsing and validation
+        ├── display.py      # Rich terminal table formatting
+        └── session.py      # Orchestration and exit code handling
+tests/
+└── unit/
+    ├── test_dates.py
+    ├── test_display.py
+    ├── test_github_client.py
+    ├── test_models.py
+    ├── test_parser.py
+    └── test_session.py
 ```
